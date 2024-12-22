@@ -1,0 +1,9 @@
+spring:
+  application:
+    name=big-event
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql///big_event
+    username: root
+    password: abc123
+    type: com.zaxxer.hikari.HikariDataSource
