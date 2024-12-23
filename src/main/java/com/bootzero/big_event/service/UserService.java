@@ -1,4 +1,4 @@
-package com.bootzero.big_event.service.impl;
+package com.bootzero.big_event.service;
 
 import com.bootzero.big_event.bean.User;
 import org.springframework.stereotype.Service;

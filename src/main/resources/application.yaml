@@ -3,7 +3,17 @@ spring:
     name=big-event
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql///big_event
+    url: jdbc:mysql://localhost:3306/big_event
     username: root
     password: abc123
     type: com.zaxxer.hikari.HikariDataSource
+---
+mybatis:
+  mapper-locations: classpath:/mapper/*.xml
+  type-aliases-package: com.bootzero.big_event.bean
+  configuration:
+    map-underscore-to-camel-case: true
+---
+logging:
+  level:
+    com.bootzero.big_event.mapper: debug
