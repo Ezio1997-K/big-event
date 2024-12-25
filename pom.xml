@@ -95,6 +95,7 @@
                             <artifactId>lombok</artifactId>
                         </exclude>
                     </excludes>
+                    <!--<jvmArguments>-ea</jvmArguments>启用断言-->
                 </configuration>
             </plugin>
         </plugins>
