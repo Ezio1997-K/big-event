@@ -9,9 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,7 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/user")
 @Validated
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
     @PostMapping("/register")
@@ -56,5 +54,12 @@ public class UserController {
         }else {
             return Result.<Void>error("密码错误");
         }
+    }
+    @GetMapping("/userInfo")
+    public Result<User> userInfo(@RequestHeader("Authorization") String token){
+        Map<String, Object> userData = JwtUtil.parseToken(token);
+        String username = (String) userData.get("username");
+        User user = userService.findUserByName(username);
+        return Result.success(user);
     }
 }
