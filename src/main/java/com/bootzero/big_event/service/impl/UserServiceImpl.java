@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import java.time.LocalDateTime;
+
 /**
  * ClassName: UserServiceImpl
  * Package: com.bootzero.big_event.service.impl.impl
@@ -27,5 +29,11 @@ public class UserServiceImpl implements UserService {
     public void register(String username, String password) {
         String md5String = DigestUtils.md5DigestAsHex(password.getBytes());
         userMapper.add(username,md5String);
+    }
+
+    @Override
+    public void update(User user) {
+        user.setUpdateTime(LocalDateTime.now());
+        userMapper.update(user);
     }
 }

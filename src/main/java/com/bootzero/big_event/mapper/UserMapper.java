@@ -17,4 +17,5 @@ public interface UserMapper {
     //添加用户
     void add(String username, String password);
 
+    void update(User user);
 }

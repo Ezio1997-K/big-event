@@ -14,4 +14,6 @@ public interface UserService {
     User findUserByName(String username);
 
     void register(String username, String password);
+    //更新
+    void update(User user);
 }
