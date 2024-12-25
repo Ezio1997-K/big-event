@@ -3,6 +3,7 @@ package com.bootzero.big_event.controllers;
 import com.bootzero.big_event.bean.Result;
 import com.bootzero.big_event.bean.User;
 import com.bootzero.big_event.service.UserService;
+import com.bootzero.big_event.utils.JwtUtil;
 import jakarta.validation.constraints.Pattern;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
@@ -10,6 +11,9 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * ClassName: UserController
@@ -43,7 +47,11 @@ public class UserController {
         }
 
         if(DigestUtils.md5DigestAsHex(password.getBytes()).equals(user.getPassword())){
-            return Result.success("jwt令牌");
+            Map<String,Object> claims = new HashMap<>();
+            claims.put("id", user.getId());
+            claims.put("username", user.getUsername());
+            String token = JwtUtil.genToken(claims);
+            return Result.success(token);
         }else {
             return Result.<Void>error("密码错误");
         }
