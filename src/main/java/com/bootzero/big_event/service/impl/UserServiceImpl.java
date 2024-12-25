@@ -3,6 +3,7 @@ package com.bootzero.big_event.service.impl;
 import com.bootzero.big_event.bean.User;
 import com.bootzero.big_event.mapper.UserMapper;
 import com.bootzero.big_event.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -13,10 +14,10 @@ import org.springframework.util.DigestUtils;
  * Description:
  *
  */
+@RequiredArgsConstructor
 @Service("userService")
 public class UserServiceImpl implements UserService {
-    @Autowired
-    private UserMapper userMapper;
+    private final UserMapper userMapper;
     @Override
     public User findUserByName(String username) {
         return userMapper.selectByName(username);
