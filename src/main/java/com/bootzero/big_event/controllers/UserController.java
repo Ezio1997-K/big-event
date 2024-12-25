@@ -4,6 +4,7 @@ import com.bootzero.big_event.bean.Result;
 import com.bootzero.big_event.bean.User;
 import com.bootzero.big_event.service.UserService;
 import com.bootzero.big_event.utils.JwtUtil;
+import com.bootzero.big_event.utils.ThreadLocalUtil;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -56,8 +57,8 @@ public class UserController {
         }
     }
     @GetMapping("/userInfo")
-    public Result<User> userInfo(@RequestHeader("Authorization") String token){
-        Map<String, Object> userData = JwtUtil.parseToken(token);
+    public Result<User> userInfo(){
+        Map<String,Object> userData = ThreadLocalUtil.get();
         String username = (String) userData.get("username");
         User user = userService.findUserByName(username);
         return Result.success(user);

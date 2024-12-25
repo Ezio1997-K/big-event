@@ -1,10 +1,13 @@
 package com.bootzero.big_event.interceptors;
 
 import com.bootzero.big_event.utils.JwtUtil;
+import com.bootzero.big_event.utils.ThreadLocalUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerInterceptor;
+
+import java.util.Map;
 
 /**
  * ClassName: LoginInterceptor
@@ -18,11 +21,17 @@ public class LoginInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String token = request.getHeader("Authorization");
         try{
-            JwtUtil.parseToken(token);
+            Map<String, Object> userData = JwtUtil.parseToken(token);
+            ThreadLocalUtil.set(userData);
             return true;
         } catch (Exception e) {
             response.setStatus(401);
             return false;
         }
+    }
+
+    @Override
+    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
+        ThreadLocalUtil.remove();
     }
 }
