@@ -24,9 +24,9 @@ public class UserController {
         User user = userService.findUserByName(username);
         if (user == null) {
             userService.register(username,password);
-            return Result.success();
+            return Result.<Void>success();
         }else {
-            return Result.error("用户名已经存在");
+            return Result.<Void>error("用户名已经存在");
         }
     }
 }
