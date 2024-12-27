@@ -7,8 +7,10 @@ import com.bootzero.big_event.utils.JwtUtil;
 import com.bootzero.big_event.utils.ThreadLocalUtil;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.validator.constraints.URL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -64,8 +66,41 @@ public class UserController {
         return Result.success(user);
     }
     @PutMapping("/update")
-    public Result<Void> updateUserInfo(@RequestBody User user){
+    public Result<Void> updateUserInfo(@RequestBody @Validated User user){
         userService.update(user);
+        return Result.success();
+    }
+    @PatchMapping("/updateAvatar")
+    public Result<Void> updateAvatar(@RequestParam @URL String avatarUrl){
+        userService.updateAvatar(avatarUrl);
+        return Result.success();
+    }
+
+    @PatchMapping("/updatePwd")
+    public Result<Void> updatePwd(@RequestBody Map<String, String> params) {
+        //1.校验参数
+        String oldPwd = params.get("old_pwd");
+        String newPwd = params.get("new_pwd");
+        String rePwd = params.get("re_pwd");
+
+        if (!StringUtils.hasLength(oldPwd) || !StringUtils.hasLength(newPwd) || !StringUtils.hasLength(rePwd)) {
+            return Result.error("缺少必要的参数");
+        }
+
+        if (!rePwd.equals(newPwd)) {
+            return Result.<Void>error("两次密码不一致");
+        }
+
+        //原密码是否正确
+        //调用userService根据用户名拿到原密码,再和old_pwd比对
+        Map<String, Object> map = ThreadLocalUtil.get();
+        String username = (String) map.get("username");
+        User loginUser = userService.findUserByName(username);
+        if (!loginUser.getPassword().equals(DigestUtils.md5DigestAsHex(oldPwd.getBytes()))) {
+            return Result.<Void>error("原密码输入错误");
+        }
+        //2.调用service完成密码更新
+        userService.updatePwd(newPwd);
         return Result.success();
     }
 }

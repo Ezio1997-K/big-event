@@ -10,6 +10,12 @@
     <update id="update">
         update user set nickname=#{nickname},email=#{email},update_time=#{updateTime} where id=#{id}
     </update>
+    <update id="updateAvatar">
+        update user set user_pic=#{avatarUrl},update_time=now() where id=#{id}
+    </update>
+    <update id="updatePwd">
+        update user set password = #{md5Str},update_time=now() where id = #{id}
+    </update>
     <select id="selectByName" resultType="user">
         select * from user where username = #{username}
     </select>
