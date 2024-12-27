@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.bootzero.big_event.mapper.CategoryMapper">
+
+    <insert id="add">
+        insert into category(category_name, category_alias, create_user, create_time, update_time)
+        VALUES(#{categoryName},#{categoryAlias},#{createUser},#{createTime},#{updateTime})
+    </insert>
+    <update id="update">
+        update category set category_name=#{categoryName},category_alias=#{categoryAlias},update_time=#{updateTime} where id=#{id}
+    </update>
+    <delete id="deleteById">
+        delete from category where id=#{id}
+    </delete>
+    <select id="list" resultType="Category">
+        select * from category where create_user=#{id}
+    </select>
+    <select id="findById" resultType="Category">
+        select * from category where id = #{id}
+    </select>
+
+</mapper>
