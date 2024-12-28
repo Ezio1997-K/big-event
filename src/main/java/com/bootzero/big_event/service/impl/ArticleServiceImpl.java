@@ -57,4 +57,15 @@ public class ArticleServiceImpl implements ArticleService {
         Integer userId = (Integer) map.get("id");
         return articleMapper.detail(id,userId);
     }
+
+    @Override
+    public void update(Article article) {
+        article.setUpdateTime(LocalDateTime.now());
+        articleMapper.update(article);
+    }
+
+    @Override
+    public void delete(Integer id) {
+        articleMapper.delete(id);
+    }
 }

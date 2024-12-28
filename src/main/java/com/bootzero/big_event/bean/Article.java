@@ -7,12 +7,15 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
+import jakarta.validation.groups.Default;
 import lombok.Data;
 import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDateTime;
+
 @Data
 public class Article {
+    @NotNull(groups = Update.class)
     private Integer id;//主键ID
     @NotEmpty
     @Pattern(regexp = "\\S{1,10}")
@@ -24,6 +27,7 @@ public class Article {
     private String coverImg;//封面图像
     //@Pattern(regexp = "^(?:已发布|草稿)$")
     @State
+    @NotEmpty
     private String state;//发布状态 已发布|草稿
     @NotNull
     private Integer categoryId;//文章分类id
@@ -33,4 +37,10 @@ public class Article {
     private LocalDateTime createTime;//创建时间
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime updateTime;//更新时间
+
+    public interface Update extends Default {
+    }
+
+    public interface Add extends Default {
+    }
 }

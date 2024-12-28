@@ -8,6 +8,14 @@
         insert into article(title, content, cover_img, state, category_id, create_user, create_time, update_time)
         VALUES(#{title},#{content},#{coverImg},#{state},#{categoryId},#{createUser},#{createTime},#{updateTime})
     </insert>
+    <update id="update">
+        update article
+        set title=#{title},content=#{content},cover_img=#{coverImg},state=#{state},category_id=#{categoryId},update_time=#{updateTime}
+        where id=#{id}
+    </update>
+    <delete id="delete">
+        delete from article where id=#{id}
+    </delete>
     <select id="list" resultType="Article">
         select * from article
         <where>

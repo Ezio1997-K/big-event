@@ -18,4 +18,8 @@ public interface ArticleMapper {
     Page<Article> list(@Param("categoryId") Integer categoryId,@Param("status") String status,@Param("id") Integer id);
 
     Article detail(Integer id, Integer userId);
+
+    void update(Article article);
+
+    void delete(Integer id);
 }

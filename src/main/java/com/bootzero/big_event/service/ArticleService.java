@@ -16,4 +16,8 @@ public interface ArticleService {
     PageBean<Article> list(Integer pageNum, Integer pageSize, Integer categoryId, String status);
     //查看文章详情
     Article detail(Integer id);
+    //更新文章
+    void update(Article article);
+
+    void delete(Integer id);
 }

@@ -35,7 +35,7 @@ public class ArticleController {
         return Result.success("所有文章数据。。。");
     }*/
     @PostMapping
-    public Result<Void> add(@RequestBody @Validated Article article) {
+    public Result<Void> add(@RequestBody @Validated(Article.Add.class) Article article) {
         articleService.add(article);
         return Result.success();
     }
@@ -53,5 +53,15 @@ public class ArticleController {
     public Result<Article> detail(Integer id){
         Article article = articleService.detail(id);
         return Result.success(article);
+    }
+    @PutMapping
+    public Result<Void> update(@RequestBody @Validated(Article.Update.class) Article article) {
+        articleService.update(article);
+        return Result.success();
+    }
+    @DeleteMapping
+    public Result<Void> delete(Integer id){
+        articleService.delete(id);
+        return Result.success();
     }
 }
