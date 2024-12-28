@@ -20,4 +20,8 @@
             and create_user=#{id}
         </where>
     </select>
+    <select id="detail" resultType="Article">
+        select * from article
+        where id=#{id} and create_user=#{userId}
+    </select>
 </mapper>

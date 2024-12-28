@@ -50,4 +50,11 @@ public class ArticleServiceImpl implements ArticleService {
         }
         return pageBean;
     }
+
+    @Override
+    public Article detail(Integer id) {
+        Map<String, Object> map = ThreadLocalUtil.get();
+        Integer userId = (Integer) map.get("id");
+        return articleMapper.detail(id,userId);
+    }
 }

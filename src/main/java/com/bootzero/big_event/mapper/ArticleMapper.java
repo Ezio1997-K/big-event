@@ -16,4 +16,6 @@ public interface ArticleMapper {
     void add(Article article);
 
     Page<Article> list(@Param("categoryId") Integer categoryId,@Param("status") String status,@Param("id") Integer id);
+
+    Article detail(Integer id, Integer userId);
 }
