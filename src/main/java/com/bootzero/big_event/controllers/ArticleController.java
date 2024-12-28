@@ -1,12 +1,13 @@
 package com.bootzero.big_event.controllers;
 
+import com.bootzero.big_event.bean.Article;
 import com.bootzero.big_event.bean.Result;
+import com.bootzero.big_event.service.ArticleService;
 import com.bootzero.big_event.utils.JwtUtil;
 import jakarta.servlet.http.HttpServletResponse;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import lombok.RequiredArgsConstructor;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
@@ -16,9 +17,11 @@ import java.util.Map;
  * Description:
  *
  */
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/article")
 public class ArticleController {
+    private final ArticleService articleService;
     @GetMapping("/list")
     public Result<?> list(/*@RequestHeader("Authorization") String token, HttpServletResponse response*/){
         /*try {
@@ -29,5 +32,10 @@ public class ArticleController {
             return Result.error("未登录");
         }*/
         return Result.success("所有文章数据。。。");
+    }
+    @PostMapping
+    public Result<Void> add(@RequestBody @Validated Article article){
+        articleService.add(article);
+        return Result.success();
     }
 }
