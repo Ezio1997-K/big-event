@@ -30,12 +30,13 @@ public class LoginInterceptor implements HandlerInterceptor {
             if (token == null) {
                 throw new RuntimeException();
             }
+
+            Map<String, Object> userData = JwtUtil.parseToken(token);
             //检查redis中是否有一样的token
-            String redisToken = stringRedisTemplate.opsForValue().get("token");
+            String redisToken = stringRedisTemplate.opsForValue().get(userData.get("username").toString());
             if (redisToken == null || !redisToken.equals(token)) {
                 throw new RuntimeException();
             }
-            Map<String, Object> userData = JwtUtil.parseToken(token);
             ThreadLocalUtil.set(userData);
             return true;
         } catch (Exception e) {

@@ -57,7 +57,7 @@ public class UserController {
             claims.put("username", user.getUsername());
             String token = JwtUtil.genToken(claims);
             //将token往redis中也存一份
-            stringRedisTemplate.opsForValue().set("token",token,1, TimeUnit.HOURS);
+            stringRedisTemplate.opsForValue().set(username,token,1, TimeUnit.HOURS);
             return Result.success(token);
         }else {
             return Result.<Void>error("密码错误");
@@ -109,7 +109,7 @@ public class UserController {
         //3.删除redis中旧令牌
         //ValueOperations<String, String> stringStringValueOperations = stringRedisTemplate.opsForValue();
         //stringStringValueOperations.getOperations().delete("token");
-        stringRedisTemplate.delete("token");
+        stringRedisTemplate.delete(username);
         return Result.success();
     }
 }
