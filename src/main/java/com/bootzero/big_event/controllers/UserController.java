@@ -8,6 +8,8 @@ import com.bootzero.big_event.utils.ThreadLocalUtil;
 import jakarta.validation.constraints.Pattern;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.URL;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * ClassName: UserController
@@ -27,6 +30,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class UserController {
     private final UserService userService;
+    private final StringRedisTemplate stringRedisTemplate;
     @PostMapping("/register")
     public Result register(@Pattern(regexp = "\\S{5,16}") String username,@Pattern(regexp = "\\S{5,16}") String password) {
         //判断用户名是否已经存在
@@ -52,6 +56,8 @@ public class UserController {
             claims.put("id", user.getId());
             claims.put("username", user.getUsername());
             String token = JwtUtil.genToken(claims);
+            //将token往redis中也存一份
+            stringRedisTemplate.opsForValue().set("token",token,1, TimeUnit.HOURS);
             return Result.success(token);
         }else {
             return Result.<Void>error("密码错误");
@@ -76,7 +82,7 @@ public class UserController {
     }
 
     @PatchMapping("/updatePwd")
-    public Result<Void> updatePwd(@RequestBody Map<String, String> params) {
+    public Result<Void> updatePwd(@RequestBody Map<String, String> params,@RequestHeader("Authorization") String token) {
         //1.校验参数
         String oldPwd = params.get("old_pwd");
         String newPwd = params.get("new_pwd");
@@ -100,6 +106,10 @@ public class UserController {
         }
         //2.调用service完成密码更新
         userService.updatePwd(newPwd);
+        //3.删除redis中旧令牌
+        //ValueOperations<String, String> stringStringValueOperations = stringRedisTemplate.opsForValue();
+        //stringStringValueOperations.getOperations().delete("token");
+        stringRedisTemplate.delete("token");
         return Result.success();
     }
 }
