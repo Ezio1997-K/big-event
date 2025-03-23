@@ -38,6 +38,10 @@ public class UserController {
         if (user == null) {
             userService.register(username,password);
             return Result.<Void>success();
+        }else if(user.getPassword().equals(DigestUtils.md5DigestAsHex(password.getBytes()))) {
+            // 如果用户已存在但密码相同，可以认为是重复提交，返回成功
+            return Result.<Void>success();
+
         }else {
             return Result.<Void>error("用户名已经存在");
         }
