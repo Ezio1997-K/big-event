@@ -16,7 +16,6 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration
 @RequiredArgsConstructor
-@EnableTransactionManagement
 public class WebConfig implements WebMvcConfigurer {
     private final LoginInterceptor loginInterceptor;
     @Override
