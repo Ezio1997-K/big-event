@@ -29,6 +29,11 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void register(String username, String password) {
+        // 再次检查用户名是否存在（防止并发问题）
+        User existingUser = findUserByName(username);
+        if (existingUser != null) {
+            throw new RuntimeException("用户名已被占用");
+        }
         String md5String = DigestUtils.md5DigestAsHex(password.getBytes());
         userMapper.add(username,md5String);
     }
