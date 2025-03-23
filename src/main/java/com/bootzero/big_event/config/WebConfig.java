@@ -4,6 +4,7 @@ import com.bootzero.big_event.interceptors.LoginInterceptor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -15,6 +16,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  */
 @Configuration
 @RequiredArgsConstructor
+@EnableTransactionManagement
 public class WebConfig implements WebMvcConfigurer {
     private final LoginInterceptor loginInterceptor;
     @Override
