@@ -20,3 +20,8 @@ mybatis:
 logging:
   level:
     com.bootzero.big_event.mapper: debug
+---
+myminio:
+  endpoint:http://192.168.15.128:9000
+  accessKey:Wua5Ddxndpva92RjzGvY
+  secretKey:lsPpVapFxgDG0X6pClKUq16N7oSwSlcDcC9IqzZb
