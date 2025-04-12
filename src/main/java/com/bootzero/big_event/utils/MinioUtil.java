@@ -1,12 +1,10 @@
 package com.bootzero.big_event.utils;
 
-import com.aliyuncs.exceptions.ClientException;
 import com.bootzero.big_event.config.MinioConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import software.amazon.awssdk.awscore.presigner.PresignedRequest;
 import software.amazon.awssdk.core.exception.SdkClientException;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -14,20 +12,29 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.s3.presigner.S3Presigner;
-import software.amazon.awssdk.services.s3.presigner.model.PresignedAbortMultipartUploadRequest;
 import software.amazon.awssdk.services.s3.presigner.model.PresignedPutObjectRequest;
+import software.amazon.awssdk.services.s3.presigner.model.PutObjectPresignRequest;
+
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Date;
+import java.net.URL;
+import java.time.Duration; // 使用 Duration 替代 Date
 
 @Component
 @RequiredArgsConstructor // Lombok: 自动生成包含 final 字段的构造函数，用于注入
 @Slf4j // Lombok: 添加日志记录器
 public class MinioUtil {
+
     private final S3Client s3Client; // 通过构造函数注入
     private final S3Presigner s3Presigner; // 通过构造函数注入
     private final MinioConfig minioConfig; // 注入配置以获取 endpoint
+
+    // 可以将默认 Bucket 配置在 application.properties 中
+    // myminio.bucket-name=your-default-bucket
+    @Value("${myminio.bucket-name:default-bucket}") // :default-bucket 是默认值
+    private String defaultBucketName;
+
     /**
      * 上传文件流到 MinIO/S3
      *
@@ -52,21 +59,27 @@ public class MinioUtil {
                 // 如果 S3Client 配置允许不带 Content-Length 上传（不推荐，且通常需要 chunked encoding），则可以继续
                 // 但 MinIO + pathStyle + 某些代理可能不支持 chunked encoding，所以上面配置禁用了它
             }
+
+
             PutObjectRequest putObjectRequest = PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key(objectName)
                     .contentType(contentType) // 设置 Content-Type 很重要
                     // .contentLength(contentLength) // 如果能确定长度，设置它
                     .build();
+
             // 使用 RequestBody.fromInputStream
             // 如果 contentLength > 0 或已知，应传入：RequestBody.fromInputStream(inputStream, contentLength)
             // 如果不确定长度且允许无长度上传（需 S3Client 配置支持），可尝试不传长度，但这里我们传入已获取（可能不准）的长度
             RequestBody requestBody = RequestBody.fromInputStream(inputStream, contentLength);
+
             PutObjectResponse response = s3Client.putObject(putObjectRequest, requestBody);
             log.info("文件上传成功 ETag: {}, Bucket: {}, Object: {}", response.eTag(), bucketName, objectName);
+
             // 构建并返回文件的访问 URL (需要确保 bucket 是公开可读的，或者之后使用预签名 URL 访问)
             // 注意：这里的 URL 构造方式依赖于 endpoint 和 path-style 访问
             return String.format("%s/%s/%s", minioConfig.getEndpoint(), bucketName, objectName);
+
         } catch (S3Exception e) {
             log.error("上传文件到 MinIO 时 S3 错误, Bucket: {}, Object: {}: {}", bucketName, objectName, e.getMessage(), e);
             // 可以根据 e.statusCode() 等进行更细致的处理
@@ -86,4 +99,97 @@ public class MinioUtil {
         }
         return null; // 上传失败
     }
+
+    /**
+     * 使用默认 Bucket 上传文件
+     */
+    public String uploadFile(String objectName, InputStream inputStream, String contentType) {
+        return uploadFile(defaultBucketName, objectName, inputStream, contentType);
+    }
+
+
+    /**
+     * 生成一个用于上传文件（PUT）的预签名 URL
+     *
+     * @param bucketName 存储桶名称
+     * @param objectName 对象名称
+     * @param duration   URL 有效期
+     * @return 预签名 URL 字符串，如果生成失败则返回 null
+     */
+    public String generatePresignedPutUrl(String bucketName, String objectName, Duration duration) {
+        try {
+            // 1. 创建基础的 PutObjectRequest (只需 bucket 和 key)
+            PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key(objectName)
+                    // 如果需要在上传时强制指定 Content-Type，可以在这里添加 .contentType("...")
+                    // 但通常由客户端上传时在 Header 中指定
+                    .build();
+
+            // 2. 创建 PutObjectPresignRequest
+            PutObjectPresignRequest presignRequest = PutObjectPresignRequest.builder()
+                    .signatureDuration(duration) // 设置有效期
+                    .putObjectRequest(putObjectRequest) // 关联 PutObjectRequest
+                    .build();
+
+            // 3. 使用 S3Presigner 生成预签名请求对象
+            PresignedPutObjectRequest presignedPutObjectRequest = s3Presigner.presignPutObject(presignRequest);
+
+            // 4. 获取 URL
+            URL url = presignedPutObjectRequest.url();
+            log.info("成功生成预签名 PUT URL: {}, 有效期: {}", url, duration);
+            return url.toString();
+
+        } catch (S3Exception e) {
+            log.error("生成预签名 PUT URL 时 S3 错误, Bucket: {}, Object: {}: {}", bucketName, objectName, e.getMessage(), e);
+        } catch (SdkClientException e) {
+            log.error("生成预签名 PUT URL 时客户端连接或配置错误, Bucket: {}, Object: {}: {}", bucketName, objectName, e.getMessage(), e);
+        }
+        return null; // 生成失败
+    }
+
+    /**
+     * 使用默认 Bucket 生成预签名 PUT URL
+     */
+    public String generatePresignedPutUrl(String objectName, Duration duration) {
+        return generatePresignedPutUrl(defaultBucketName, objectName, duration);
+    }
+
+
+    // --- 你可以根据需要添加其他方法 ---
+    // 例如：下载文件、删除文件、生成预签名 GET URL 等
+
+    /**
+     * 生成一个用于下载文件（GET）的预签名 URL
+     *
+     * @param bucketName 存储桶名称
+     * @param objectName 对象名称
+     * @param duration   URL 有效期
+     * @return 预签名 URL 字符串，如果生成失败则返回 null
+     */
+//    public String generatePresignedGetUrl(String bucketName, String objectName, Duration duration) {
+//        try {
+//            GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+//                    .bucket(bucketName)
+//                    .key(objectName)
+//                    .build();
+//
+//            GetObjectPresignRequest presignRequest = GetObjectPresignRequest.builder()
+//                    .signatureDuration(duration)
+//                    .getObjectRequest(getObjectRequest)
+//                    .build();
+//
+//            PresignedGetObjectRequest presignedGetObjectRequest = s3Presigner.presignGetObject(presignRequest);
+//            URL url = presignedGetObjectRequest.url();
+//            log.info("成功生成预签名 GET URL: {}, 有效期: {}", url, duration);
+//            return url.toString();
+//
+//        } catch (S3Exception e) {
+//            log.error("生成预签名 GET URL 时 S3 错误, Bucket: {}, Object: {}: {}", bucketName, objectName, e.getMessage(), e);
+//        } catch (SdkClientException e) {
+//            log.error("生成预签名 GET URL 时客户端连接或配置错误, Bucket: {}, Object: {}: {}", bucketName, objectName, e.getMessage(), e);
+//        }
+//        return null;
+//    }
+
 }
