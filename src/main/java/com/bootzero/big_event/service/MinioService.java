@@ -2,6 +2,7 @@ package com.bootzero.big_event.service;
 
 import io.minio.*;
 import io.minio.errors.*;
+import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.TimeUnit;
 
 @Service
 @RequiredArgsConstructor
@@ -116,6 +118,30 @@ public class MinioService {
                 log.error("Object '{}' not found in bucket '{}'.", objectName, bucketName);
                 // 可以抛出自定义的 NotFound 异常
             }
+            throw e;
+        }
+    }
+    /**
+     * 生成文件的预签名 URL (用于 GET 请求，即下载)
+     *
+     * @param objectName 对象名称
+     * @param expiryTime 过期时间 (单位：秒)
+     * @return 预签名 URL 字符串
+     */
+    public String generatePresignedGetObjectUrl(String objectName, int expiryTime) throws Exception {
+        try {
+            String url = minioClient.getPresignedObjectUrl(
+                    GetPresignedObjectUrlArgs.builder()
+                            .method(Method.GET) // 指定 HTTP 方法为 GET
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .expiry(expiryTime, TimeUnit.SECONDS) // 设置过期时间
+                            .build()
+            );
+            log.info("Generated presigned GET URL for '{}': {}", objectName, url);
+            return url;
+        } catch (Exception e) {
+            log.error("Error occurred generating presigned GET URL: {}", e.getMessage());
             throw e;
         }
     }
