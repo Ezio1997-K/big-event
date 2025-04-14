@@ -145,5 +145,28 @@ public class MinioService {
             throw e;
         }
     }
-
+    /**
+     * 生成用于上传文件的预签名 URL (PUT 请求)
+     *
+     * @param objectName 预期的对象名称
+     * @param expiryTime 过期时间 (单位：秒)
+     * @return 预签名 URL 字符串
+     */
+    public String generatePresignedPutObjectUrl(String objectName, int expiryTime) throws Exception {
+        try {
+            String url = minioClient.getPresignedObjectUrl(
+                    GetPresignedObjectUrlArgs.builder()
+                            .method(Method.PUT) // 指定 HTTP 方法为 PUT
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .expiry(expiryTime, TimeUnit.SECONDS)
+                            .build()
+            );
+            log.info("Generated presigned PUT URL for '{}': {}", objectName, url);
+            return url;
+        } catch (Exception e) {
+            log.error("Error occurred generating presigned PUT URL: {}", e.getMessage());
+            throw e;
+        }
+    }
 }
