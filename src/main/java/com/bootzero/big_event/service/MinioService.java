@@ -135,7 +135,7 @@ public class MinioService {
                             .method(Method.GET) // 指定 HTTP 方法为 GET
                             .bucket(bucketName)
                             .object(objectName)
-                            .expiry(expiryTime, TimeUnit.SECONDS) // 设置过期时间
+                            .expiry(expiryTime, TimeUnit.HOURS) // 设置过期时间
                             .build()
             );
             log.info("Generated presigned GET URL for '{}': {}", objectName, url);
