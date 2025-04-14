@@ -66,4 +66,36 @@ public class MinioService {
             throw e;//由Controller处理
         }
     }
+    /**
+     * 上传文件流 (另一种方式，例如处理非 MultipartFile 的场景)
+     *
+     * @param inputStream 输入流
+     * @param objectName  对象名称
+     * @param contentType 文件类型 (e.g., "image/jpeg")
+     * @return 对象名称
+     */
+    public String uploadFile(InputStream inputStream, String objectName, String contentType) throws Exception {
+        ensureBucketExists();
+        try {
+            minioClient.putObject(
+                    PutObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            // 对于未知大小的流，需要指定 partSize (例如 10MB)，这里用 -1 可能导致内存问题，推荐明确大小或使用 known size
+                            .stream(inputStream, -1, 10485760) // -1 size, 10MB part size
+                            .contentType(contentType)
+                            .build()
+            );
+            log.info("File '{}' uploaded successfully from stream to bucket '{}'.", objectName, bucketName);
+            return objectName;
+        } catch (Exception e) {
+            log.error("Error occurred during stream upload: {}", e.getMessage());
+            inputStream.close(); // 确保流被关闭
+            throw e;
+        } finally {
+            if (inputStream != null) {
+                inputStream.close();
+            }
+        }
+    }
 }
