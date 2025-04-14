@@ -29,3 +29,9 @@ myminio:
   accessKey: Wua5Ddxndpva92RjzGvY
   secretKey: lsPpVapFxgDG0X6pClKUq16N7oSwSlcDcC9IqzZb
   bucket-name: big-event
+---
+minio:
+  endpoint: http://192.168.15.128:9000
+  access-key: Wua5Ddxndpva92RjzGvY
+  secret-key: lsPpVapFxgDG0X6pClKUq16N7oSwSlcDcC9IqzZb
+  bucket-name: big-event
