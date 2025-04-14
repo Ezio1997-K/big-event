@@ -44,13 +44,14 @@ public class MinioUtil {
      * @param contentType 文件类型 (例如: "image/jpeg", "application/pdf")
      * @return 上传成功后对象的 URL，如果失败则返回 null
      */
-    public String uploadFile(String bucketName, String objectName, InputStream inputStream, String contentType) {
+    public String uploadFile(String bucketName, String objectName, InputStream inputStream, String contentType,long length) {
         try {
             // SDK v2 需要知道 InputStream 的大小，否则可能出错或效率低下
             // 注意：inputStream.available() 不总是可靠，特别是网络流
             // 如果可能，最好传入 byte[] 或 File，或者预先知道流的大小
             // 这里我们尝试使用 available()，但在生产环境中需要谨慎
-            long contentLength = inputStream.available();
+            //long contentLength = inputStream.available();
+            long contentLength = length;
             if (contentLength < 0) {
                 // 如果无法获取大小，可以考虑先读取到内存或临时文件，但这会增加资源消耗
                 log.warn("无法获取 InputStream 的大小，上传可能失败或效率低下。Object: {}/{}", bucketName, objectName);
@@ -65,7 +66,7 @@ public class MinioUtil {
                     .bucket(bucketName)
                     .key(objectName)
                     .contentType(contentType) // 设置 Content-Type 很重要
-                    // .contentLength(contentLength) // 如果能确定长度，设置它
+                    .contentLength(contentLength) // 如果能确定长度，设置它
                     .build();
 
             // 使用 RequestBody.fromInputStream
@@ -85,9 +86,9 @@ public class MinioUtil {
             // 可以根据 e.statusCode() 等进行更细致的处理
         } catch (SdkClientException e) {
             log.error("上传文件到 MinIO 时客户端连接或配置错误, Bucket: {}, Object: {}: {}", bucketName, objectName, e.getMessage(), e);
-        } catch (IOException e) {
+        } /*catch (IOException e) {
             log.error("读取上传文件流时发生 IO 错误, Bucket: {}, Object: {}: {}", bucketName, objectName, e.getMessage(), e);
-        } finally {
+        }*/ finally {
             // 确保 InputStream 被关闭
             if (inputStream != null) {
                 try {
@@ -103,9 +104,9 @@ public class MinioUtil {
     /**
      * 使用默认 Bucket 上传文件
      */
-    public String uploadFile(String objectName, InputStream inputStream, String contentType) {
+    /*public String uploadFile(String objectName, InputStream inputStream, String contentType) {
         return uploadFile(defaultBucketName, objectName, inputStream, contentType);
-    }
+    }*/
 
 
     /**
