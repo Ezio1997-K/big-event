@@ -169,4 +169,23 @@ public class MinioService {
             throw e;
         }
     }
+    /**
+     * 删除文件
+     *
+     * @param objectName 对象名称
+     */
+    public void deleteFile(String objectName) throws Exception {
+        try {
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .build()
+            );
+            log.info("Object '{}' deleted successfully from bucket '{}'.", objectName, bucketName);
+        } catch (Exception e) {
+            log.error("Error occurred during file deletion: {}", e.getMessage());
+            throw e;
+        }
+    }
 }
