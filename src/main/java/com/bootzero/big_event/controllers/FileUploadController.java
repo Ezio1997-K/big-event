@@ -2,8 +2,11 @@ package com.bootzero.big_event.controllers;
 
 import com.aliyuncs.exceptions.ClientException;
 import com.bootzero.big_event.bean.Result;
+import com.bootzero.big_event.service.MinioService;
 import com.bootzero.big_event.utils.AliOssUtil;
 import com.bootzero.big_event.utils.MinioUtil;
+import io.minio.errors.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +20,8 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.UUID;
 
 /**
@@ -27,17 +32,18 @@ import java.util.UUID;
  */
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 public class FileUploadController {
-    @Autowired
-    private MinioUtil minioUtil;
+    private final MinioService minioService;
     @PostMapping("/upload")
-    public Result<String> uploadFile(@RequestParam("file")MultipartFile file) throws IOException, ClientException {
+    public Result<String> uploadFile(@RequestParam("file")MultipartFile file) throws Exception {
         /*//保证文件的名字是唯一的,从而防止文件覆盖
         String originalFilename = file.getOriginalFilename();
         String filename = UUID.randomUUID().toString()+originalFilename.substring(originalFilename.lastIndexOf("."));
         String url = AliOssUtil.uploadFile(filename, file.getInputStream());
         return Result.success(url);*/
-        System.out.println("Controller received file: " + file.getOriginalFilename() + ", size: " + file.getSize());
+
+        /*System.out.println("Controller received file: " + file.getOriginalFilename() + ", size: " + file.getSize());
         // ---- 临时调试代码 开始 ----
         try (InputStream testStream = file.getInputStream()) {
             byte[] buffer = new byte[1024];
@@ -64,7 +70,13 @@ public class FileUploadController {
             return Result.success(url);
         }catch (IOException e){
             throw new RuntimeException("获取文件流失败",e);
-        }
+        }*/
+        String originalFilename = file.getOriginalFilename();
+        String filename = UUID.randomUUID().toString()+originalFilename.substring(originalFilename.lastIndexOf("."));
+        String uploadFile = minioService.uploadFile(file,filename);
+        String url = minioService.generatePresignedGetObjectUrl(uploadFile,3600);
+        log.info("url为{}",url);
+        return Result.success(url);
     }
 }
 
