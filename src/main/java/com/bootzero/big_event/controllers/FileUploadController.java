@@ -74,7 +74,7 @@ public class FileUploadController {
         String originalFilename = file.getOriginalFilename();
         String filename = UUID.randomUUID().toString()+originalFilename.substring(originalFilename.lastIndexOf("."));
         String uploadFile = minioService.uploadFile(file,filename);
-        String url = minioService.generatePresignedGetObjectUrl(uploadFile,3600);
+        String url = minioService.generatePresignedGetObjectUrl(uploadFile,24);
         log.info("url为{}",url);
         return Result.success(url);
     }
