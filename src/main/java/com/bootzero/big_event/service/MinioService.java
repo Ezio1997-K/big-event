@@ -1,9 +1,6 @@
 package com.bootzero.big_event.service;
 
-import io.minio.BucketExistsArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.PutObjectArgs;
+import io.minio.*;
 import io.minio.errors.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -98,4 +95,29 @@ public class MinioService {
             }
         }
     }
+    /**
+     * 下载文件
+     *
+     * @param objectName 要下载的对象名称
+     * @return 返回文件的 InputStream
+     */
+    public InputStream downloadFile(String objectName) throws Exception {
+        try {
+            return minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectName)
+                            .build()
+            );
+        } catch (Exception e) {
+            log.error("Error occurred during file download: {}", e.getMessage());
+            // 可以根据具体的异常类型 (如 ErrorResponseException 且 code 为 NoSuchKey) 判断文件是否存在
+            if (e instanceof ErrorResponseException && ((ErrorResponseException) e).errorResponse().code().equals("NoSuchKey")) {
+                log.error("Object '{}' not found in bucket '{}'.", objectName, bucketName);
+                // 可以抛出自定义的 NotFound 异常
+            }
+            throw e;
+        }
+    }
+
 }
