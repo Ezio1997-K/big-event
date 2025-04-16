@@ -112,4 +112,13 @@ public class UserController {
         stringRedisTemplate.delete(username);
         return Result.success();
     }
+    @GetMapping("/logout")
+    public Result<Void> logout(){
+        //获取用户名
+        Map<String,Object> map =  ThreadLocalUtil.get();
+        String username = (String) map.get("username");
+        //删除redis令牌
+        stringRedisTemplate.delete(username);
+        return Result.success();
+    }
 }
